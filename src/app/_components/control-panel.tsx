@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { adjustBatchStock, testRateLimiterAction } from "../_actions/nexus-actions";
+import { adjustBatchStock, testRateLimiterAction, triggerAsyncAuditAction } from "../_actions/nexus-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -196,11 +196,22 @@ export function ControlPanel({ data }: { data: ControlPanelData }) {
         </Card>
 
         <Card className="border-zinc-800 bg-zinc-950/60">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">
               <ShieldAlert className="h-5 w-5 text-rose-400" />
-              Incidentes y Trabajos de Seguridad (Security Jobs)
+              Incidentes y Colas BullMQ
             </CardTitle>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                await triggerAsyncAuditAction();
+                // Recargamos la vista a los 3.5 segundos para ver cuando el Worker terminó
+                setTimeout(() => window.location.reload(), 3500);
+              }}
+            >
+              ⚡ Auditar con BullMQ
+            </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.jobs.map((job) => (

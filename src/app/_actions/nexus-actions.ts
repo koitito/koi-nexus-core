@@ -5,6 +5,7 @@ import { inventoryBatches, auditLogs, apiClients, securityJobs } from "@/db/sche
 import { desc, eq } from "drizzle-orm";
 import { checkApiRateLimit } from "@/lib/rate-limiter";
 import { revalidatePath } from "next/cache";
+import { auditQueue } from "@/lib/queue";
 
 // 1. Obtener todos los datos para el Dashboard principal
 export async function getDashboardData() {
@@ -52,4 +53,25 @@ export async function testRateLimiterAction(apiKey: string) {
   const result = await checkApiRateLimit(apiKey);
   revalidatePath("/");
   return result;
+}
+
+// 4. Enviar un trabajo pesado a la cola asíncrona de BullMQ + Redis
+export async function triggerAsyncAuditAction() {
+  // Primero creamos la fila en Postgres con estado "PROCESSING"
+  const [newJob] = await db
+    .insert(securityJobs)
+    .values({
+      jobType: "ASYNC_BULLMQ_SCAN",
+      status: "PROCESSING",
+      riskLevel: "PENDING",
+      summaryReport: "⏳ Analizando trazabilidad en segundo plano con BullMQ Worker (tarda ~3s)...",
+    })
+    .returning();
+
+  // Metemos el trabajo en la fila de Redis sin bloquear al usuario
+  await auditQueue.add("deep-warehouse-scan", {
+    securityJobId: newJob.id,
+  });
+
+  revalidatePath("/");
 }
