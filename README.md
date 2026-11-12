@@ -143,5 +143,5 @@ Además del simulador interactivo incluido en el Dashboard, puedes probar el *Ra
 
 ## 👨‍💻 Autor
 
-Desarrollado por **Matías Jesús Alfaro Cádiz** — Ingeniero en Informática.
+Desarrollado por **Matías** — Ingeniero en Informática.
 * [GitHub (@koitito)](https://github.com/koitito)
